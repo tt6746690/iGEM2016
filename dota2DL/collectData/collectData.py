@@ -66,19 +66,20 @@ class CollectData():
             return None
 
         self.populateGameMatchTable(m)
-        self.populateMatchPlayerTable(m)
 
     def populateGameMatchTable(self, m):
         ''' populate Match table '''
         sqlstr = """
-            INSERT INTO GameMatch (MATCH_ID, RADIANT_WIN)
+            INSERT IGNORE INTO GameMatch (MATCH_ID, RADIANT_WIN)
             VALUES (%s, %s)
+            ON DUPLICATE KEY UPDATE MATCH_ID=%s
         """
-        inserts = (m['match_id'], m['radiant_win'])
+        inserts = (m['match_id'], m['radiant_win'], m['match_id'])
         try:
             self.c.execute(sqlstr, inserts)
             self.db.commit()
             print 'SUCCESS: insert to GameMatch table {}'.format(m['match_id'])
+            self.populateMatchPlayerTable(m)
         except MySQLdb.Error, e:
             print 'ERROR: populate match table failed at {}'.format(m['match_id'])
             raise e
@@ -106,27 +107,32 @@ class CollectData():
         ''' handles logic for getting history and loading data to db '''
         iterr = 5
         startMatchID = None
-        while iterr >= 0:
+        while True:
             his = self.api.get_match_history(start_at_match_id=startMatchID,
                                              skill=3,
                                              min_players=10,
                                              game_mode=2,
                                              matches_requested=500)
             matches = his['matches']
+
+            if len(matches) is 0:
+                print('Finished processing all 500 most recent matches.')
+                break
+
+            print 'start from {} to {}'.format(matches[0]['match_id'],matches[-1]['match_id'] - 1)
+
             for match in matches:
                 self.handleMatch(match['match_id'])
                 sleep(ti)
 
             startMatchID = matches[-1]['match_id'] - 1
-            iterr -= 1
-
-
-            # print 'start from {} to {}'.format(matches[0]['match_id'],                              matches[-1]['match_id'] - 1)
             sleep(5)
 
 
 
 if __name__ == '__main__':
-    co = CollectData()
-    # co.getHeroMapping()
-    co.getMatches()
+    iterr = 50
+    while iterr >= 0:
+        co = CollectData()
+        co.getMatches()
+        sleep(5)
