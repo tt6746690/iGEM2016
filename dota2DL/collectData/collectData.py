@@ -137,9 +137,9 @@ if __name__ == '__main__':
             co = CollectData()
             co.getMatches()
             sleep(5)
-        except APITimeoutError:
+        except dota2api.src.exceptions.APITimeoutError:
             sleep(10)
-            print '==== re-run script due to APITimeoutError'
+            print '==== re-run script due to APITimeoutError ===='
             continue
-        else
+        else:
             break
