@@ -3,7 +3,7 @@ import os
 import MySQLdb
 from time import sleep
 
-ti = 1.0
+ti = 0
 
 API_KEY = 'BE591D102BD4B3652CB310A39F7EA79C'
 # MYSQL_PORT_3306_TCP_PORT
@@ -133,6 +133,13 @@ class CollectData():
 if __name__ == '__main__':
     iterr = 50
     while iterr >= 0:
-        co = CollectData()
-        co.getMatches()
-        sleep(5)
+        try:
+            co = CollectData()
+            co.getMatches()
+            sleep(5)
+        except APITimeoutError:
+            sleep(10)
+            print '==== re-run script due to APITimeoutError'
+            continue
+        else
+            break
