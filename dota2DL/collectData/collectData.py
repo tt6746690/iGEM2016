@@ -1,13 +1,16 @@
 import dota2api
 import os
 import MySQLdb
+from time import sleep
+
+ti = 1.0
 
 API_KEY = 'BE591D102BD4B3652CB310A39F7EA79C'
 # MYSQL_PORT_3306_TCP_PORT
 DB_HOST = os.getenv('MYSQL_PORT_3306_TCP_ADDR', '127.0.0.1')
 DB_PORT = int(os.getenv('MYSQL_PORT_3306_TCP_PORT', 3306))
 DB_USER = 'root'
-DB_PASS = '1122'
+DB_PASS = os.getenv('MYSQL_ENV_MYSQL_ROOT_PASSWORD')
 DB_NAME = 'dota2_data'
 
 class CollectData():
@@ -19,6 +22,7 @@ class CollectData():
 
 
     def testMysqlConnection(self):
+        ''' testing connection to mysql in another container'''
         try:
             self.c.execute('show databases;')
             print self.c.fetchall()
@@ -29,6 +33,7 @@ class CollectData():
 
 
     def getHeroMapping(self):
+        ''' store hero name:id mapping to db '''
         getHero = self.api.get_heroes()
         l = []
         for hero in getHero["heroes"]:
@@ -46,11 +51,82 @@ class CollectData():
             raise e
             self.db.rollback()
 
+    def checkValidMatch(self, match):
+        ''' check if match is valid '''
+        for player in match['players']:
+            if player['leaver_status'] is not 0:
+                return False
+        return True
+
+    def handleMatch(self, matchID):
+        ''' process match detail in detail '''
+        m = self.api.get_match_details(match_id=matchID)
+        if not self.checkValidMatch(m):
+            print 'skipping match {}'.format(m['match_id'])
+            return None
+
+        self.populateGameMatchTable(m)
+        self.populateMatchPlayerTable(m)
+
+    def populateGameMatchTable(self, m):
+        ''' populate Match table '''
+        sqlstr = """
+            INSERT INTO GameMatch (MATCH_ID, RADIANT_WIN)
+            VALUES (%s, %s)
+        """
+        inserts = (m['match_id'], m['radiant_win'])
+        try:
+            self.c.execute(sqlstr, inserts)
+            self.db.commit()
+            print 'SUCCESS: insert to GameMatch table {}'.format(m['match_id'])
+        except MySQLdb.Error, e:
+            print 'ERROR: populate match table failed at {}'.format(m['match_id'])
+            raise e
+            self.db.rollback()
+
+    def populateMatchPlayerTable(self, m):
+        ''' populate MatchPlayer table '''
+        sqlstr = """
+            INSERT INTO MatchPlayer (MATCHPLAYER_ID, ACCOUNT_ID, HERO_ID,
+            HERO_NAME, MATCH_ID)
+            VALUES (0, %s, %s, %s, %s)
+        """
+        inserts = [(p['account_id'], p['hero_id'], p['hero_name'], m['match_id'])
+            for p in m['players']]
+        try:
+            self.c.executemany(sqlstr, inserts)
+            self.db.commit()
+            print 'SUCCESS: insert to MatchPlayer table {}'.format(m['match_id'])
+        except MySQLdb.Error, e:
+            print 'ERROR: populate matchplayer table failed at {}'.format(m['match_id'])
+            raise e
+            self.db.rollback()
+
+    def getMatches(self):
+        ''' handles logic for getting history and loading data to db '''
+        iterr = 5
+        startMatchID = None
+        while iterr >= 0:
+            his = self.api.get_match_history(start_at_match_id=startMatchID,
+                                             skill=3,
+                                             min_players=10,
+                                             game_mode=2,
+                                             matches_requested=500)
+            matches = his['matches']
+            for match in matches:
+                self.handleMatch(match['match_id'])
+                sleep(ti)
+
+            startMatchID = matches[-1]['match_id'] - 1
+            iterr -= 1
 
 
+            # print 'start from {} to {}'.format(matches[0]['match_id'],                              matches[-1]['match_id'] - 1)
+            sleep(5)
 
 
 
 if __name__ == '__main__':
     co = CollectData()
-    co.getHeroMapping()
+    # co.getHeroMapping()
+    co.getMatches()
