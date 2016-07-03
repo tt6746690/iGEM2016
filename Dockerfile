@@ -19,15 +19,16 @@ RUN apt-get update && apt-get install -y \
   python-pip \
   python-nose \
   python-numpy \
-  python-scipy
+  python-scipy \
+  libmysqlclient-dev
 
 # Install bleeding-edge Theano
 RUN pip install --upgrade --no-deps git+git://github.com/Theano/Theano.git
-RUN pip install dota2api
+RUN pip install \
+  dota2api \
+  MySQL-python
 
-
-RUN git clone https://github.com/tt6746690/iGEM2016.git
 
 EXPOSE 80
-WORKDIR /iGEM2016/dota2DL
+WORKDIR /root/iGEM2016
 CMD pwd

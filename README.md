@@ -5,6 +5,30 @@ docker run --name theano -dit -v /Users/markwang/github/iGEM2016:/root/iGEM2016 
 docker exec -it theano /bin/bash
 ```
 
+_set up data volume container_
+
+```
+docker create -v /var/lib/mysql --name dbdata mysql
+```
+
+_set up mysql_
+
+```
+docker run --volumes-from dbdata --name ml_mysql -e MYSQL_ROOT_PASSWORD=1122 -d mysql
+docker cp /Users/markwang/github/iGEM2016/dota2DL/collectData/dbinit.sql ml_mysql:/dbinit.sql
+docker exec -it ml_mysql bash
+
+docker run -it --link ml_mysql:mysql --rm mysql sh -c 'exec mysql -h"$MYSQL_PORT_3306_TCP_ADDR" -P"$MYSQL_PORT_3306_TCP_PORT" -uroot -p"$MYSQL_ENV_MYSQL_ROOT_PASSWORD"'
+```
+
+_application container_
+
+```
+docker run --name igem2016 --link ml_mysql:mysql -dit -v /Users/markwang/github/iGEM2016:/root/iGEM2016 tt6746690/igem2016:test /bin/bash
+```
+
+
+
 __Resources__
 
 
