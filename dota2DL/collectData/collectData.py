@@ -3,7 +3,7 @@ import os
 import MySQLdb
 from time import sleep
 
-ti = 0
+ti = 1.0
 
 API_KEY = 'BE591D102BD4B3652CB310A39F7EA79C'
 # MYSQL_PORT_3306_TCP_PORT
@@ -126,20 +126,18 @@ class CollectData():
                 sleep(ti)
 
             startMatchID = matches[-1]['match_id'] - 1
-            sleep(5)
 
 
 
 if __name__ == '__main__':
-    iterr = 50
-    while iterr >= 0:
+    while True:
         try:
             co = CollectData()
             co.getMatches()
             sleep(5)
         except dota2api.src.exceptions.APITimeoutError:
-            sleep(10)
             print '==== re-run script due to APITimeoutError ===='
+            sleep(10)
             continue
         else:
             break
