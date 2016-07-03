@@ -58,3 +58,9 @@ __Resources__
 [_Neural network demystified_](https://github.com/stephencwelch/Neural-Networks-Demystified)  
 [_Dockerfile digitalocean tutorial_](https://docs.docker.com/engine/reference/builder/)  
 [_dota2 cp blog summary_](http://kevintechnology.com/post/71621133663/using-machine-learning-to-recommend-heroes-for)  
+
+
+
+__papers__
+
+[_feature selector: cross entropy function_](https://www.scopus.com/record/display.uri?eid=2-s2.0-0031140388&origin=inward&txGid=0)

@@ -56,6 +56,8 @@ class CollectData():
         for player in match['players']:
             if player['leaver_status'] is not 0:
                 return False
+        # if len(match['pick_bans']) != 10:
+
         return True
 
     def handleMatch(self, matchID):
@@ -89,10 +91,10 @@ class CollectData():
         ''' populate MatchPlayer table '''
         sqlstr = """
             INSERT INTO MatchPlayer (MATCHPLAYER_ID, ACCOUNT_ID, HERO_ID,
-            HERO_NAME, MATCH_ID)
-            VALUES (0, %s, %s, %s, %s)
+            HERO_NAME, TEAM_ID, MATCH_ID)
+            VALUES (0, %s, %s, %s, %s, %s)
         """
-        inserts = [(p['account_id'], p['hero_id'], p['hero_name'], m['match_id'])
+        inserts = [(p['account_id'], p['hero_id'], p['hero_name'], format(p['player_slot'], '08b')[0], m['match_id'])
             for p in m['players']]
         try:
             self.c.executemany(sqlstr, inserts)
@@ -128,13 +130,13 @@ class CollectData():
             startMatchID = matches[-1]['match_id'] - 1
 
 
-
 if __name__ == '__main__':
     while True:
         try:
             co = CollectData()
             co.getMatches()
             sleep(5)
+            continue
         except dota2api.src.exceptions.APITimeoutError:
             print '==== re-run script due to APITimeoutError ===='
             sleep(10)
