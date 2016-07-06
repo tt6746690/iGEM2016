@@ -28,7 +28,8 @@ RUN pip install \
   dota2api \
   MySQL-python
 
+RUN ln -s /root/iGEM2016/.theanorc /root/.theanorc
+
 
 EXPOSE 80
 WORKDIR /root/iGEM2016
-CMD pwd

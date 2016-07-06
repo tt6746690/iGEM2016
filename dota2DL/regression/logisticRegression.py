@@ -1,24 +1,15 @@
 import os
-import MySQLdb
 import numpy as np
 from collections import defaultdict
 import theano
 import theano.tensor as T
 
-DB_HOST = os.getenv('MYSQL_PORT_3306_TCP_ADDR', '127.0.0.1')
-DB_PORT = int(os.getenv('MYSQL_PORT_3306_TCP_PORT', 3306))
-DB_USER = 'root'
-DB_PASS = os.getenv('MYSQL_ENV_MYSQL_ROOT_PASSWORD')
-DB_NAME = 'dota2_data'
 HERO_COUNT = 113
 FEATURE_COUNT = HERO_COUNT*2
 
 class LogisticRegression():
 
     def __init__(self):
-        # db connection
-        self.db = MySQLdb.connect(host=DB_HOST, port=DB_PORT, user=DB_USER, passwd=DB_PASS, db=DB_NAME)
-        self.c = self.db.cursor()
         # datasets
         self.D = ()
         self.testD = ()
@@ -52,61 +43,6 @@ class LogisticRegression():
           updates=((self.w, self.w - 0.1 * self.gw), (self.b, self.b - 0.1 * self.gb)))
         self.predict = theano.function(inputs=[self.x], outputs=self.prediction)
 
-    def getTrainingDataSets(self):
-        sqlstr = """
-            SELECT DISTINCT MATCH_ID, RADIANT_WIN, HERO_ID, TEAM_ID
-            FROM GameMatch JOIN MatchPlayer USING (MATCH_ID)
-            LIMIT 33600
-        """
-        try:
-            self.c.execute(sqlstr)
-            res = self.c.fetchall()
-            self.D = self.extractData(list(res))
-        except MySQLdb.Error, e:
-            print 'get TRAINING datasets'
-            raise e
-            self.db.rollback()
-
-    def getTestingDataSets(self):
-        sqlstr = """
-            SELECT DISTINCT MATCH_ID, RADIANT_WIN, HERO_ID, TEAM_ID
-            FROM GameMatch JOIN MatchPlayer USING (MATCH_ID)
-            ORDER BY MATCH_ID DESC
-            LIMIT 8400
-        """
-        try:
-            self.c.execute(sqlstr)
-            res = self.c.fetchall()
-            self.testD = self.extractData(list(res))
-        except MySQLdb.Error, e:
-            print 'get TEST datasets'
-            raise e
-            self.db.rollback()
-
-    def extractData(self, data):
-        ''' reorganize data to groups based on match_id'''
-
-        groups = defaultdict( list )
-        [groups[item[0]].append(item[1:]) for item in data]
-
-        x, y = [], []
-        for k in dict(groups):
-            blanks = [0] * FEATURE_COUNT
-            match = groups[k]
-            for player in match:
-                hero_id = int(player[1]) - 1    # hero list start from 1, need to decr
-                if player[2] == 1:              # team_id = dire
-                    hero_id = hero_id + HERO_COUNT
-                blanks[hero_id] = 1
-            x.append(blanks)
-            y.append(match[0][0])       # radiant win == 1
-        x = np.array(x)
-        y = np.array(y)
-
-        if len(x) != len(y):
-            print 'error generating dataset: inconsistent dimension with x and y'
-        print 'x dimension is {}, y dimension is {}'.format(x.shape, y.shape)
-        return (x, y)
 
 if __name__ == '__main__':
     lr = LogisticRegression()
