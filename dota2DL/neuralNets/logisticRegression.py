@@ -38,7 +38,7 @@ class LogisticRegression():
         self.predict = None
 
     def constructGraph(self):
-        p_1 = 1 / (1 + T.exp(-T.dot(self.x, self.w) - self.b))   # Probability that target = 1
+        p_1 = 1 / (1 + T.exp(-T.dot(self.x, self.w) - self.b))   # activation function
         self.prediction = p_1 > 0.5                          # The prediction thresholded
         self.xent = -self.y * T.log(p_1) - (1-self.y) * T.log(1-p_1)   # Cross-entropy loss function
         self.cost = self.xent.mean() + 0.01 * (self.w ** 2).sum()      # The cost to minimize
@@ -115,11 +115,11 @@ if __name__ == '__main__':
     lr.constructGraph()
     lr.buildFunction()
 
-    for i in range(40000):
+    for i in range(400):
         pred, err = lr.train(lr.D[0], lr.D[1])
         # print pred, err
 
-    # print("Final model: w: \n {}, \n b: \n {}".format(lr.w.get_value(), lr.b.get_value()))
+    print("Final model: w: \n {}, \n b: \n {}".format(lr.w.get_value(), lr.b.get_value()))
 
     pred = lr.predict(lr.testD[0])
     print pred
