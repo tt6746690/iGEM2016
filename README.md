@@ -17,7 +17,7 @@ _mysql container_
 
 ```
 docker run --volumes-from dbdata --name ml_mysql -e MYSQL_ROOT_PASSWORD=1122 -d mysql
-docker cp /Users/markwang/github/iGEM2016/dota2DL/collectData/dbinit.sql ml_mysql:/dbinit.sql
+docker cp /Users/markwang/github/iGEM2016/dota2DL/db/dbinit.sql ml_mysql:/dbinit.sql
 docker exec -it ml_mysql bash
 
 # interactive shell
@@ -39,7 +39,7 @@ git clone https://github.com/tt6746690/iGEM2016.git
 
 docker create -v /var/lib/mysql --name dbdata mysql
 docker run --volumes-from dbdata --name ml_mysql -e MYSQL_ROOT_PASSWORD=1122 -d mysql
-docker cp /home/markwang/github/iGEM2016/dota2DL/collectData/dbinit.sql ml_mysql:/dbinit.sql
+docker cp /home/markwang/github/iGEM2016/dota2DL/db/dbinit.sql ml_mysql:/dbinit.sql
 
 mysql -u root -p
 source dbinit.sql
