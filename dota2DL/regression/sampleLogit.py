@@ -169,7 +169,6 @@ def load_data(dataset):
         variable) would lead to a large decrease in performance.
         """
         data_x, data_y = data_xy
-        print(data_y)
 
         shared_x = theano.shared(numpy.asarray(data_x,
                                                dtype=theano.config.floatX),
@@ -197,7 +196,7 @@ def load_data(dataset):
 
 def sgd_optimization_mnist(learning_rate=0.13, n_epochs=1000,
                            dataset='dota2_data.pkl',
-                           batch_size=100):
+                           batch_size=20):
     """
     Demonstrate stochastic gradient descent optimization of a log-linear
     model
@@ -241,7 +240,7 @@ def sgd_optimization_mnist(learning_rate=0.13, n_epochs=1000,
 
     # construct the logistic regression class
     # Each MNIST image has size 28*28
-    classifier = LogisticRegression(input=x, n_in=FEATURE_COUNT, n_out=1)
+    classifier = LogisticRegression(input=x, n_in=FEATURE_COUNT, n_out=2)
 
     # the cost we minimize during training is the negative log likelihood of
     # the model in symbolic format
@@ -280,6 +279,7 @@ def sgd_optimization_mnist(learning_rate=0.13, n_epochs=1000,
     # compiling a Theano function `train_model` that returns the cost, but in
     # the same time updates the parameter of the model based on the rules
     # defined in `updates`
+
     train_model = theano.function(
         inputs=[index],
         outputs=cost,
@@ -407,17 +407,20 @@ def predict():
     test_set_x, test_set_y = datasets[2]
     test_set_x = test_set_x.get_value()
 
-    predicted_values = predict_model(test_set_x[:10])
-    print("Predicted values for the first 10 examples in test set:")
+    print("Target values for the test set")
+    print(test_set_y.eval())
+
+    predicted_values = predict_model(test_set_x)
+    print("Predicted values for the test set:")
     print(predicted_values)
+
+    #
+    zipped = zip(predicted_values, test_set_y.eval())
+    tf = [1 if i[0] == i[1] else 0 for i in zipped]
+
+    print('precent prediction correct: {} %'.format(sum(tf)*100/len(tf)))
 
 
 if __name__ == '__main__':
     sgd_optimization_mnist()
-    #
-    # with gzip.open('mnist.pkl.gz', 'rb') as f:
-    #     try:
-    #         train_set, valid_set, test_set = pickle.load(f, encoding='latin1')
-    #     except:
-    #         train_set, valid_set, test_set = pickle.load(f)
-    # print(train_set[0].shape)
+    predict()

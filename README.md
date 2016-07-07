@@ -1,4 +1,5 @@
 
+Lets use docker for development and production. 
 
 _theano_
 
@@ -17,7 +18,7 @@ _mysql container_
 
 ```
 docker run --volumes-from dbdata --name ml_mysql -e MYSQL_ROOT_PASSWORD=1122 -d mysql
-docker cp /Users/markwang/github/iGEM2016/dota2DL/db/dbinit.sql ml_mysql:/dbinit.sql
+docker cp $HOME/github/iGEM2016/dota2DL/db/dbinit.sql ml_mysql:/dbinit.sql
 docker exec -it ml_mysql bash
 
 # interactive shell
@@ -27,26 +28,25 @@ docker run -it --link ml_mysql:mysql --rm mysql sh -c 'exec mysql -h"$MYSQL_PORT
 _application container_
 
 ```
-docker run --name igem2016 --link ml_mysql:mysql -dit -v /Users/markwang/github/iGEM2016:/root/iGEM2016 -v /Users/markwang/github/DeepLearningTutorials:/root/DeepLearningTutorials  tt6746690/igem2016:test /bin/bash
+docker run --name igem2016 --link ml_mysql:mysql -dit -v $HOME/github/iGEM2016:/root/iGEM2016 -v $HOME/github/DeepLearningTutorials:/root/DeepLearningTutorials  tt6746690/igem2016:test /bin/bash
 ```
 
 
 _production_
 
 ```
-cd /home/markwang/github
+cd $HOME/github
 git clone https://github.com/tt6746690/iGEM2016.git
 
 docker create -v /var/lib/mysql --name dbdata mysql
 docker run --volumes-from dbdata --name ml_mysql -e MYSQL_ROOT_PASSWORD=1122 -d mysql
-docker cp /home/markwang/github/iGEM2016/dota2DL/db/dbinit.sql ml_mysql:/dbinit.sql
+docker cp $HOME/github/iGEM2016/dota2DL/db/dbinit.sql ml_mysql:/dbinit.sql
 
 mysql -u root -p
 source dbinit.sql
 
-docker run --name igem2016 --link ml_mysql:mysql -dit -v /home/markwang/github/iGEM2016:/root/iGEM2016 tt6746690/igem2016:test /bin/bash
+docker run --name igem2016 --link ml_mysql:mysql -dit -v $HOME/github/iGEM2016:/root/iGEM2016 tt6746690/igem2016:test /bin/bash
 docker exec -it igem2016 bash
-
 ```
 
 

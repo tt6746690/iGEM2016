@@ -1,6 +1,7 @@
 [global]
 floatX = float64
 device = gpu0
+exception_verbosity = high
 
 [lib]
 cnmem = 1
